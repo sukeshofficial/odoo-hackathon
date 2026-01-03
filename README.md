@@ -182,6 +182,13 @@ This is a hackathon project. For contributions:
 4. Test thoroughly
 5. Submit a pull request
 
+## Team
+| Name | Role | Email |
+|------|------|-------|
+| SUKESH D | Developer | sukesh.official.2006@gmail.com |
+| PRITHIVIRAAJ J N | Developer | prithivi.coder76@gmail.com |
+| VERAADITHYA | Tester | veera.rockzz40@gmail.com |
+
 ## License
 
 ISC License</content>
