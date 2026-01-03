@@ -1,8 +1,9 @@
-const LRU = require("lru-cache");
+const { LRUCache } = require("lru-cache");
 
-const cache = new LRU({
-  max: 500,
-  ttl: 1000 * 60 * 10 // default 10 min
+// Create cache instance
+const cache = new LRUCache({
+  max: 500,                 // max items
+  ttl: 1000 * 60 * 10       // 10 minutes
 });
 
 const cacheMiddleware = (ttlMs) => (req, res, next) => {
@@ -13,10 +14,11 @@ const cacheMiddleware = (ttlMs) => (req, res, next) => {
     return res.json(cached);
   }
 
-  const json = res.json.bind(res);
+  const originalJson = res.json.bind(res);
+
   res.json = (body) => {
     cache.set(key, body, { ttl: ttlMs });
-    json(body);
+    originalJson(body);
   };
 
   next();
