@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000/api/external";
+const BASE_URL = "http://localhost:5000/api/external";
 
 // Generic fetch wrapper
 async function request(endpoint) {

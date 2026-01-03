@@ -1,0 +1,185 @@
+You are working on a full-stack hackathon project called **GlobeTrotter**.
+The backend is already implemented and stable.
+
+==============================
+BACKEND – COMPLETED FEATURES
+==============================
+
+Tech Stack:
+- Node.js (v22+)
+- Express.js
+- JavaScript (NO TypeScript)
+- PostgreSQL
+- Prisma ORM
+- JWT authentication
+- bcrypt password hashing
+- Multer for file uploads
+- Geoapify APIs (server-side proxy)
+- In-memory LRU caching
+- Rate limiting (10 req/sec per IP)
+
+--------------------------------
+AUTHENTICATION BACKEND
+--------------------------------
+
+User model (Prisma):
+- id
+- first_name
+- last_name
+- email (unique, login identifier)
+- phone
+- city
+- country
+- additional_info
+- password_hash (bcrypt)
+- profile_photo (optional)
+- created_at
+
+Auth endpoints:
+1) POST /api/auth/register
+   - Accepts multipart/form-data
+   - Fields:
+     firstName, lastName, email, phone, city, country,
+     additionalInfo, password, profilePhoto (optional)
+   - Hashes password
+   - Stores user in DB
+   - Never stores or returns plain password
+
+2) POST /api/auth/login
+   - Body: { username (email), password }
+   - Verifies bcrypt hash
+   - Returns JWT token + safe user object
+
+3) GET /api/auth/user-by-email?email=
+   - Public endpoint
+   - Returns safe user profile (no password/hash)
+
+Security:
+- JWT secret stored in .env
+- Passwords NEVER returned
+- No API keys exposed to frontend
+
+--------------------------------
+GEOAPIFY INTEGRATION (BACKEND PROXY)
+--------------------------------
+
+IMPORTANT:
+- Frontend NEVER calls Geoapify directly
+- Backend appends GEOAPIFY_API_KEY internally
+- All responses are normalized & stable
+
+Environment:
+- GEOAPIFY_API_KEY stored in process.env
+
+Caching & Rate Limiting:
+- In-memory LRU cache (size 500)
+- Geocode & places cached 5–10 min
+- Top regions cached 12+ hours
+- Rate limit: 10 requests/second/IP
+
+Proxy Routes Implemented:
+
+1) GET /api/external/geocode?q=&limit=
+   → Forward geocoding
+   Response:
+   [
+     { id, formatted, lat, lon, country, city }
+   ]
+
+2) GET /api/external/reverse?lat=&lon=
+   → Reverse geocoding
+   Response:
+   { id, formatted, lat, lon, country, city }
+
+3) GET /api/external/places
+   Params:
+   - q (optional)
+   - categories (optional)
+   - bias=lat,lon (required if q missing)
+   Response:
+   [
+     {
+       id,
+       name,
+       category,
+       address,
+       lat,
+       lon,
+       distance,
+       source: "geoapify"
+     }
+   ]
+
+4) GET /api/external/place-details?place_id=
+   → Rich place info (when available)
+
+5) GET /api/external/top-regions?country=ISO_CODE&limit=
+   → Aggregated regions by tourist attractions
+   Response:
+   [
+     {
+       regionName,
+       count,
+       samplePlace: { name, lat, lon }
+     }
+   ]
+
+6) GET /api/external/route
+   Params:
+   srcLat, srcLon, dstLat, dstLon, profile
+   Response:
+   {
+     distance,
+     time,
+     polyline
+   }
+
+Backend safeguards:
+- Rejects invalid or undefined query params
+- Uses ISO country codes (IN, FR, US)
+- Never forwards invalid data to Geoapify
+
+--------------------------------
+FRONTEND CONTRACT (IMPORTANT)
+--------------------------------
+
+Frontend MUST:
+- Use fetch()
+- Call ONLY backend proxy routes
+- NEVER send undefined query params
+- Guard API calls until required data exists
+- Use email as login identifier
+- Use ISO country code for top-regions
+
+Example valid places call:
+GET /api/external/places?categories=tourism.attraction&bias=48.85,2.35&limit=10
+
+--------------------------------
+CURRENT FRONTEND TASK
+--------------------------------
+
+Build a Dashboard page that:
+- Searches locations (geocode autocomplete)
+- Selects a location and stores lat/lon
+- Fetches nearby POIs using /places
+- Displays Top Regions using /top-regions
+- Shows place details on selection
+- Optionally previews routes
+
+No backend changes needed.
+
+--------------------------------
+STATUS
+--------------------------------
+
+✔ Auth backend completed
+✔ File upload (profile photo) completed
+✔ Prisma schema stable
+✔ Geoapify proxy working
+✔ Caching & rate limiting implemented
+✔ Frontend integration bugs identified & fixed
+✔ API contract finalized
+
+GOAL:
+Use the existing backend to build a clean, functional
+Dashboard UI for GlobeTrotter without touching backend logic.

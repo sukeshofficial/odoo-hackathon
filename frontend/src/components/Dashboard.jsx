@@ -1,182 +1,205 @@
 import "./css/Dashboard.css";
 import { useEffect, useState } from "react";
-import {
-  geocode,
-  getPlaces,
-  getTopRegions,
-  getPlaceDetails,
-  getRoute,
-} from "../api/geoApi";
-import banner from '../assets/banner.png';
+import { api } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-  // ---------------- STATE ----------------
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-
-  const [selectedLocation, setSelectedLocation] = useState(null);
-
   const [regions, setRegions] = useState([]);
-  const [places, setPlaces] = useState([]);
+  const [trips, setTrips] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
 
-  const [selectedPlace, setSelectedPlace] = useState(null);
-  const [routeInfo, setRouteInfo] = useState(null);
-
-  // ---------------- SEARCH (Forward Geocode) ----------------
   useEffect(() => {
-    if (query.length < 3) return;
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUserProfile(JSON.parse(storedUser));
+    }
+
+    const fetchData = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user) {
+          const summary = await api.getTripSummary(user.id);
+          setTrips(summary.recentTrips || []);
+        }
+
+        const topRegions = await api.getTopRegions();
+        setRegions(topRegions || []);
+      } catch (err) {
+        console.error("Failed to load dashboard data", err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      return;
+    }
 
     const t = setTimeout(async () => {
       try {
-        const data = await geocode(query);
-        setSuggestions(data || []);
-      } catch {}
+        const data = await api.geocode(query);
+        setSuggestions(data.map(f => ({
+          id: f.properties?.place_id || Math.random(),
+          formatted: f.formatted || f.properties?.formatted || query,
+          lat: f.properties?.lat,
+          lon: f.properties?.lon
+        })) || []);
+      } catch { }
     }, 300);
 
     return () => clearTimeout(t);
   }, [query]);
 
-  // ---------------- LOCATION SELECT ----------------
-  const selectLocation = async (loc) => {
-    setSelectedLocation(loc);
+  const selectLocation = (loc) => {
     setQuery(loc.formatted);
     setSuggestions([]);
-
-    // Load nearby places
-    try {
-      const p = await getPlaces({
-        query: "",
-        categories: "tourism.attraction",
-        biasLat: loc.lat,
-        biasLon: loc.lon,
-      });
-      setPlaces(p || []);
-    } catch {}
-
-    // Load top regions
-    if (loc.country) {
-      try {
-        const r = await getTopRegions(loc.country);
-        setRegions(r || []);
-      } catch {}
-    }
   };
 
-  // ---------------- REGION CLICK ----------------
-  const selectRegion = async (region) => {
-    if (!region.samplePlace) return;
-
-    try {
-      const p = await getPlaces({
-        query: "",
-        categories: "tourism.attraction",
-        biasLat: region.samplePlace.lat,
-        biasLon: region.samplePlace.lon,
-      });
-      setPlaces(p || []);
-    } catch {}
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/login");
   };
 
-  // ---------------- PLACE CLICK ----------------
-  const selectPlace = async (place) => {
-    setSelectedPlace(place);
-    try {
-      await getPlaceDetails(place.id); // details fetched, stored if needed later
-    } catch {}
-  };
-
-  // ---------------- PLAN TRIP (ROUTE PREVIEW) ----------------
-  const planTrip = async () => {
-    if (!selectedLocation || !selectedPlace) return;
-
-    try {
-      const r = await getRoute({
-        srcLat: selectedLocation.lat,
-        srcLon: selectedLocation.lon,
-        dstLat: selectedPlace.lat,
-        dstLon: selectedPlace.lon,
-      });
-      setRouteInfo(r);
-      console.log("Route preview:", r);
-    } catch {}
-  };
-
-  // ---------------- JSX (UNCHANGED STRUCTURE) ----------------
   return (
-    <div className="page dashboard-page ">
-      <div className="card dashboard-card">
-
-        {/* Navbar */}
-        <div className="dashboard-navbar">
-          <h3>GlobeTrotter</h3>
-          <div className="avatar dashboard-avatar" style={{ width: "40px", height: "40px" }} />
+    <div className="dashboard-container">
+      {/* Navigation Bar */}
+      <nav className="main-navbar">
+        <div className="navbar-left">
+          <h2 className="logo">🌍 TripPlanner</h2>
         </div>
-
-        {/* Banner */}
-        <div className="dashboard-banner">
-          <img src={banner} className="dashboard-banner"/>
+        <div className="navbar-center">
+          <a href="#" onClick={() => navigate("/dashboard")}>Home</a>
+          <a href="#" onClick={() => navigate("/trips")}>My Trips</a>
+          <a href="#" onClick={() => navigate("/search-activities")}>Activities</a>
+          <a href="#" onClick={() => navigate("/calendar")}>Calendar</a>
         </div>
-
-        {/* Search & Controls */}
-        <div className="dashboard-controls">
-          <input
-            className="input dashboard-search"
-            placeholder="Search bar..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button className="btn">Group by</button>
-          <button className="btn">Filter</button>
-          <button className="btn">Sort by</button>
+        <div className="navbar-right">
+          <button onClick={() => navigate("/profile")} className="profile-btn">
+            {userProfile?.first_name || "Profile"}
+          </button>
+          <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
+      </nav>
 
-        {/* Autocomplete (logic only, no new UI) */}
-        {suggestions.length > 0 && (
-          <ul>
-            {suggestions.map((s) => (
-              <li key={s.id} onClick={() => selectLocation(s)}>
-                {s.formatted}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {/* Top Regional Selections */}
-        <h4 className="dashboard-section-title">
-          Top Regional Selections
-        </h4>
-        <div className="dashboard-regions">
-          {regions.map((r, i) => (
-            <div
-              key={i}
-              className="region-card"
-              onClick={() => selectRegion(r)}
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="hero-content">
+          <h1>Discover Your Next Adventure</h1>
+          <p>Plan, organize, and track your trips with ease</p>
+          
+          {/* Search Bar */}
+          <div className="hero-search-container">
+            <input
+              className="hero-search-input"
+              placeholder="Where do you want to go?"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
             />
-          ))}
-        </div>
+            <button className="hero-search-btn" onClick={() => navigate("/create-trip")}>
+              Search
+            </button>
+            
+            {suggestions.length > 0 && (
+              <ul className="hero-search-suggestions">
+                {suggestions.map((s) => (
+                  <li key={s.id} onClick={() => selectLocation(s)}>
+                    📍 {s.formatted}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-        {/* Previous Trips (used as Nearby Places) */}
-        <h4 className="dashboard-section-title">
-          Previous Trips
-        </h4>
-        <div className="dashboard-trips">
-          {places.map((p, i) => (
-            <div
-              key={i}
-              className="trip-card"
-              onClick={() => selectPlace(p)}
-            />
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div className="dashboard-footer">
-          <button className="btn plan-btn" onClick={planTrip}>
-            + Plan a trip
+          <button className="cta-btn" onClick={() => navigate("/create-trip")}>
+            + Create New Trip
           </button>
         </div>
+      </section>
 
-      </div>
+      {/* Trips Section */}
+      <section className="trips-section">
+        <div className="section-header">
+          <h2>Your Trips</h2>
+          <button className="view-all-btn" onClick={() => navigate("/trips")}>
+            View All →
+          </button>
+        </div>
+        
+        <div className="trips-grid">
+          {trips.length === 0 ? (
+            <div className="empty-state">
+              <p>No trips yet. Start planning your first adventure!</p>
+              <button className="btn-primary" onClick={() => navigate("/create-trip")}>
+                Create Trip
+              </button>
+            </div>
+          ) : (
+            trips.slice(0, 3).map((trip, index) => (
+              <div 
+                key={index} 
+                className="trip-card-modern"
+                onClick={() => navigate(`/trips/${trip.id}`)}
+              >
+                <div className="trip-card-image">
+                  <div className="trip-badge">
+                    {new Date(trip.startDate) > new Date() ? "Upcoming" : 
+                     new Date(trip.endDate) < new Date() ? "Completed" : "Ongoing"}
+                  </div>
+                </div>
+                <div className="trip-card-content">
+                  <h3>{trip.title || trip.destination}</h3>
+                  <p className="trip-dates">
+                    {new Date(trip.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} - 
+                    {new Date(trip.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </p>
+                  {trip.budget && (
+                    <p className="trip-budget-tag">Budget: {trip.currency || "$"}{trip.budget}</p>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
+      {/* Popular Destinations */}
+      <section className="destinations-section">
+        <div className="section-header">
+          <h2>Popular Destinations</h2>
+        </div>
+        
+        <div className="destinations-grid">
+          {regions.length === 0 ? (
+            <p>Loading destinations...</p>
+          ) : (
+            regions.slice(0, 6).map((region, index) => (
+              <div 
+                key={index} 
+                className="destination-card"
+                style={{
+                  backgroundImage: region.imageUrl ? `url(${region.imageUrl})` : 
+                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                }}
+              >
+                <div className="destination-overlay">
+                  <h3>{region.name || region.regionName}</h3>
+                  <p>{region.placeCount || region.count || 0} places</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="dashboard-footer-new">
+        <p>© 2026 TripPlanner. Plan your perfect journey.</p>
+      </footer>
     </div>
   );
 }

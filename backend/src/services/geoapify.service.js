@@ -1,9 +1,9 @@
 const GEO_BASE_V1 = "https://api.geoapify.com/v1";
 const GEO_BASE_V2 = "https://api.geoapify.com/v2";
 
-const apiKey = process.env.GEOAPIFY_API_KEY;
+const apiKey = process.env.GEOAPIFY_KEY || process.env.GEOAPIFY_API_KEY;
 
-if (!apiKey) throw new Error("GEOAPIFY_API_KEY missing");
+if (!apiKey) console.warn("GEOAPIFY_KEY missing, external calls will fail.");
 
 const callGeoapify = async (url) => {
   const res = await fetch(url);

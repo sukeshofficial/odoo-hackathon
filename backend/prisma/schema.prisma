@@ -19,6 +19,55 @@ model User {
   password_hash   String
   profile_photo   String?
   created_at      DateTime @default(now())
+  trips           Trip[]
 }
 
 
+model Trip {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  destination  String
+  title        String?
+  description  String?
+  startDate    DateTime
+  endDate      DateTime?
+  currency     String?  @default("USD")
+  budget       Float?
+  createdAt    DateTime @default(now())
+  stops        Stop[]
+}
+
+model Stop {
+  id          Int        @id @default(autoincrement())
+  tripId      Int
+  trip        Trip       @relation(fields: [tripId], references: [id])
+  cityName    String
+  sequence    Int
+  startDate   DateTime
+  endDate     DateTime
+  budget      Float?
+  activities  Activity[]
+}
+
+model Activity {
+  id           Int      @id @default(autoincrement())
+  stopId       Int
+  stop         Stop     @relation(fields: [stopId], references: [id])
+  name         String
+  startDatetime DateTime
+  durationHours Float?
+  cost         Float?
+  type         String?
+}
+
+model Place {
+  id          Int      @id @default(autoincrement())
+  name        String
+  region      String
+  country     String
+  description String?
+  imageUrl    String?
+  rating      Float?
+  createdAt   DateTime @default(now())
+}

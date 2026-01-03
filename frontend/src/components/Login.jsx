@@ -13,7 +13,7 @@ export default function Login() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/auth/user-by-email?email=${emailValue}`
+        `http://localhost:5000/api/auth/user-by-email?email=${emailValue}`
       );
 
       if (response.status === 200) {
@@ -33,7 +33,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export default function Login() {
           className="avatar"
           style={{
             backgroundImage: userProfile?.profilePhoto
-              ? `url(http://localhost:3000${userProfile.profilePhoto})`
+              ? `url(http://localhost:5000${userProfile.profilePhoto})`
               : undefined,
 
             backgroundSize: "cover",
