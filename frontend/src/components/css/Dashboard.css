@@ -1,0 +1,226 @@
+
+/* =========================
+   PAGE WRAPPER FIX
+========================= */
+.page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* IMPORTANT */
+  padding: 24px;
+}
+
+/* =========================
+   DASHBOARD CARD
+========================= */
+.dashboard-card {
+  width: 100%;
+  max-width: 1200px;       /* Desktop width */
+  height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+/* =========================
+   TOP NAVBAR
+========================= */
+.dashboard-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 56px;
+  margin-bottom: 16px;
+}
+
+.dashboard-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e5e7eb;
+}
+
+/* =========================
+   SCROLLABLE CONTENT
+========================= */
+.dashboard-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* =========================
+   BANNER
+========================= */
+.dashboard-banner {
+  height: 160px;
+  border-radius: 12px;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+/* =========================
+   SEARCH & CONTROLS
+========================= */
+.dashboard-controls {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.dashboard-search {
+  width: 100%;
+}
+
+/* =========================
+   SECTION TITLES
+========================= */
+.dashboard-section-title {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+/* =========================
+   TOP REGIONAL SELECTIONS
+========================= */
+.dashboard-regions {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.region-card {
+  height: 120px;
+  border-radius: 12px;
+  background: #f3f4f6;
+}
+
+/* =========================
+   PREVIOUS TRIPS
+========================= */
+.dashboard-trips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.trip-card {
+  height: 200px;
+  border-radius: 14px;
+  background: #f3f4f6;
+}
+
+/* =========================
+   FOOTER CTA
+========================= */
+.dashboard-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 8px;
+}
+
+.plan-btn {
+  width: 160px;
+}
+
+.btn {
+    height: 30px;
+    padding: 0px;
+}
+
+/* =========================
+   OVERRIDE GLOBAL PAGE
+========================= */
+.dashboard-page {
+  align-items: flex-start;     /* override index.css */
+  justify-content: center;
+  padding: 24px;
+}
+
+/* =========================
+   OVERRIDE GLOBAL CARD
+========================= */
+.dashboard-card {
+  width: 100%;                 /* override 350px */
+  max-width: 1200px;
+  height: calc(100vh - 48px);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   OVERRIDE GLOBAL AVATAR
+========================= */
+.dashboard-card .avatar {
+  width: 40px;                 /* navbar size */
+  height: 40px;
+  margin: 0;                   /* remove auto-centering */
+}
+
+/* =========================
+   DASHBOARD NAVBAR
+========================= */
+.dashboard-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 56px;
+  margin-bottom: 16px;
+}
+
+/* =========================
+   SCROLLABLE CONTENT
+========================= */
+.dashboard-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+
+/* =========================
+   RESPONSIVE FIXES
+========================= */
+@media (max-width: 1024px) {
+  .dashboard-regions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dashboard-trips {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-card {
+    height: auto;
+  }
+
+  .dashboard-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-regions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-trips {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-footer {
+    justify-content: center;
+  }
+
+  .plan-btn {
+    width: 100%;
+  }
+}
